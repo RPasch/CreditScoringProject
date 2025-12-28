@@ -49,24 +49,11 @@ def create_derived_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def load_model_and_data():
     """Load trained model and test data"""
-    # Get base directory (works both locally and in deployment)
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # Load pipeline from local models directory
+    pipeline_path = 'models/logreg_pipeline.pkl'
     
-    # Try multiple possible paths for models
-    model_paths = [
-        os.path.join(base_dir, 'Notebooks/models/logreg_pipeline.pkl'),
-        os.path.join(base_dir, 'models/logreg_pipeline.pkl'),
-        '../Notebooks/models/logreg_pipeline.pkl',
-    ]
-    
-    pipeline_path = None
-    for path in model_paths:
-        if os.path.exists(path):
-            pipeline_path = path
-            break
-    
-    if not pipeline_path:
-        raise FileNotFoundError(f"Could not find LogReg model. Tried: {model_paths}")
+    if not os.path.exists(pipeline_path):
+        raise FileNotFoundError(f"LogReg model not found at: {pipeline_path}")
     
     # Load pipeline
     pipeline = joblib.load(pipeline_path)
@@ -76,23 +63,14 @@ def load_model_and_data():
     features = pipeline['features']
     categorical_features = pipeline.get('categorical_features', [])
     
-    # Try multiple paths for test data
-    data_paths = [
-        os.path.join(base_dir, 'data/wrangled_data/merged_test.csv'),
-        '../data/wrangled_data/merged_test.csv',
-    ]
+    # Load test data from parent directory
+    test_data_path = '../data/wrangled_data/merged_test.csv'
     
-    data_path = None
-    for path in data_paths:
-        if os.path.exists(path):
-            data_path = path
-            break
-    
-    if not data_path:
-        raise FileNotFoundError(f"Could not find test data. Tried: {data_paths}")
+    if not os.path.exists(test_data_path):
+        raise FileNotFoundError(f"Test data not found at: {test_data_path}")
     
     # Load test data
-    test_df = pd.read_csv(data_path)
+    test_df = pd.read_csv(test_data_path)
     
     # Apply feature engineering
     test_df = create_derived_features(test_df)

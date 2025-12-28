@@ -74,24 +74,11 @@ def create_xgb_features(df: pd.DataFrame) -> pd.DataFrame:
 def load_model_and_data():
     """Load XGBoost model and test data"""
     try:
-        # Get base directory (works both locally and in deployment)
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # Load pipeline from local models directory
+        pipeline_path = 'models/xgboost_pipeline.pkl'
         
-        # Try multiple possible paths for models
-        model_paths = [
-            os.path.join(base_dir, 'Notebooks/models/xgboost_pipeline.pkl'),
-            os.path.join(base_dir, 'models/xgboost_pipeline.pkl'),
-            '../Notebooks/models/xgboost_pipeline.pkl',
-        ]
-        
-        pipeline_path = None
-        for path in model_paths:
-            if os.path.exists(path):
-                pipeline_path = path
-                break
-        
-        if not pipeline_path:
-            raise FileNotFoundError(f"Could not find model. Tried: {model_paths}")
+        if not os.path.exists(pipeline_path):
+            raise FileNotFoundError(f"Model not found at: {pipeline_path}")
         
         # Load pipeline
         pipeline = joblib.load(pipeline_path)
@@ -103,26 +90,21 @@ def load_model_and_data():
         top_features = pipeline['top_features']
         
         # Load the XGBoost model JSON
-        model_json_path = pipeline_path.replace('xgboost_pipeline.pkl', 'xgboost_model.json')
+        model_json_path = 'models/xgboost_model.json'
+        
+        if not os.path.exists(model_json_path):
+            raise FileNotFoundError(f"Model JSON not found at: {model_json_path}")
+        
         model.load_model(model_json_path)
         
-        # Try multiple paths for test data
-        data_paths = [
-            os.path.join(base_dir, 'data/wrangled_data/merged_test.csv'),
-            '../data/wrangled_data/merged_test.csv',
-        ]
+        # Load test data from parent directory
+        test_data_path = '../data/wrangled_data/merged_test.csv'
         
-        data_path = None
-        for path in data_paths:
-            if os.path.exists(path):
-                data_path = path
-                break
-        
-        if not data_path:
-            raise FileNotFoundError(f"Could not find test data. Tried: {data_paths}")
+        if not os.path.exists(test_data_path):
+            raise FileNotFoundError(f"Test data not found at: {test_data_path}")
         
         # Load test data
-        test_df = pd.read_csv(data_path)
+        test_df = pd.read_csv(test_data_path)
         
         # Apply feature engineering
         test_df = create_xgb_features(test_df)

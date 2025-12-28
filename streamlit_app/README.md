@@ -1,14 +1,29 @@
-# Credit Scoring Streamlit App
+# Credit Scoring Streamlit Apps
 
-A lightweight web interface for credit scoring predictions using Logistic Regression.
+Two lightweight web interfaces for credit scoring predictions.
 
-## Features
+## 🎯 Available Apps
 
-- 📋 **Application Selection**: Choose from test dataset via dropdown
-- 📊 **Feature Display**: View all features for selected application
-- 🎯 **Real-time Predictions**: Get instant credit decisions
-- 📈 **Visual Explanations**: Interactive feature contribution charts
-- 🤖 **AI Explanations**: Natural language decision summaries (optional)
+### 1. **XGBoost Credit Scorer** (`xgb_app.py`) - RECOMMENDED
+Advanced gradient boosting model with SHAP explanations
+
+**Features:**
+- 📋 Application selection from test dataset
+- 📊 Sample data preview with all features
+- 🎯 XGBoost model predictions
+- 📈 SHAP feature importance analysis
+- 🤖 AI-generated explanations (optional)
+- ✅ True label comparison (when available)
+
+### 2. **Logistic Regression Scorer** (`app.py`)
+Interpretable linear model with coefficient-based explanations
+
+**Features:**
+- 📋 Application selection via dropdown
+- 📊 Feature display and values
+- 🎯 Logistic regression predictions
+- 📈 Feature contribution charts
+- 🤖 AI explanations (optional)
 
 ## Quick Start
 
@@ -18,10 +33,20 @@ A lightweight web interface for credit scoring predictions using Logistic Regres
 pip install -r requirements.txt
 ```
 
-### 2. Run the App
+### 2. Run an App
 
+**Option A: XGBoost App (Recommended)**
+```bash
+streamlit run xgb_app.py
+# OR
+./run_xgb_app.sh
+```
+
+**Option B: Logistic Regression App**
 ```bash
 streamlit run app.py
+# OR
+./run_app.sh
 ```
 
 The app will open in your browser at `http://localhost:8501`
@@ -55,17 +80,24 @@ The app will open in your browser at `http://localhost:8501`
 
 ```
 streamlit_app/
-├── app.py              # Main Streamlit application
-├── logreg_utils.py     # Model loading and data processing
+├── xgb_app.py          # XGBoost Streamlit application ⭐
+├── app.py              # Logistic Regression application
+├── logreg_utils.py     # LogReg model utilities
+├── run_xgb_app.sh      # XGBoost app launcher
+├── run_app.sh          # LogReg app launcher
 ├── requirements.txt    # Python dependencies
-└── README.md          # This file
+├── test_setup.py       # Setup verification script
+└── README.md           # This file
 ```
 
 ## Requirements
 
 - Python 3.8+
-- Trained logistic regression model in `../Notebooks/models/`
+- Trained models in `../models/` directory:
+  - `xgboost_pipeline.pkl` and `xgboost_model.json`
+  - `logreg_pipeline.pkl`
 - Test data in `../data/wrangled_data/merged_test.csv`
+- OpenAI API key (optional, for AI explanations)
 
 ## Notes
 

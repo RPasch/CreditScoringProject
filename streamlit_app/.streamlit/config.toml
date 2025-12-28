@@ -6,10 +6,11 @@ textColor="#262730"
 font="sans serif"
 
 [server]
-headless = false
+headless = true
 port = 8501
-enableCORS = false
+enableCORS = true
 enableXsrfProtection = true
+maxUploadSize = 200
 
 [browser]
 gatherUsageStats = false

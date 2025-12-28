@@ -74,8 +74,27 @@ def create_xgb_features(df: pd.DataFrame) -> pd.DataFrame:
 def load_model_and_data():
     """Load XGBoost model and test data"""
     try:
+        # Get base directory (works both locally and in deployment)
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+        # Try multiple possible paths for models
+        model_paths = [
+            os.path.join(base_dir, 'Notebooks/models/xgboost_pipeline.pkl'),
+            os.path.join(base_dir, 'models/xgboost_pipeline.pkl'),
+            '../Notebooks/models/xgboost_pipeline.pkl',
+        ]
+        
+        pipeline_path = None
+        for path in model_paths:
+            if os.path.exists(path):
+                pipeline_path = path
+                break
+        
+        if not pipeline_path:
+            raise FileNotFoundError(f"Could not find model. Tried: {model_paths}")
+        
         # Load pipeline
-        pipeline = joblib.load('../Notebooks/models/xgboost_pipeline.pkl')
+        pipeline = joblib.load(pipeline_path)
         
         model = pipeline['model']
         features = pipeline['features']
@@ -83,11 +102,27 @@ def load_model_and_data():
         categorical_features = pipeline['categorical_features']
         top_features = pipeline['top_features']
         
-        # Load the XGBoost model
-        model.load_model('../Notebooks/models/xgboost_model.json')
+        # Load the XGBoost model JSON
+        model_json_path = pipeline_path.replace('xgboost_pipeline.pkl', 'xgboost_model.json')
+        model.load_model(model_json_path)
+        
+        # Try multiple paths for test data
+        data_paths = [
+            os.path.join(base_dir, 'data/wrangled_data/merged_test.csv'),
+            '../data/wrangled_data/merged_test.csv',
+        ]
+        
+        data_path = None
+        for path in data_paths:
+            if os.path.exists(path):
+                data_path = path
+                break
+        
+        if not data_path:
+            raise FileNotFoundError(f"Could not find test data. Tried: {data_paths}")
         
         # Load test data
-        test_df = pd.read_csv('../data/wrangled_data/merged_test.csv')
+        test_df = pd.read_csv(data_path)
         
         # Apply feature engineering
         test_df = create_xgb_features(test_df)
@@ -106,7 +141,13 @@ def load_model_and_data():
         return model, top_features, test_df, X_test_selected
         
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         st.error(f"Error loading model: {str(e)}")
+        st.error(f"Current directory: {os.getcwd()}")
+        st.error(f"Files in current dir: {os.listdir('.')}")
+        with st.expander("Full error traceback"):
+            st.code(error_details)
         return None, None, None, None
 
 

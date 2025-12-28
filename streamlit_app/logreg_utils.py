@@ -49,16 +49,50 @@ def create_derived_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def load_model_and_data():
     """Load trained model and test data"""
+    # Get base directory (works both locally and in deployment)
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    # Try multiple possible paths for models
+    model_paths = [
+        os.path.join(base_dir, 'Notebooks/models/logreg_pipeline.pkl'),
+        os.path.join(base_dir, 'models/logreg_pipeline.pkl'),
+        '../Notebooks/models/logreg_pipeline.pkl',
+    ]
+    
+    pipeline_path = None
+    for path in model_paths:
+        if os.path.exists(path):
+            pipeline_path = path
+            break
+    
+    if not pipeline_path:
+        raise FileNotFoundError(f"Could not find LogReg model. Tried: {model_paths}")
+    
     # Load pipeline
-    pipeline = joblib.load('../Notebooks/models/logreg_pipeline.pkl')
+    pipeline = joblib.load(pipeline_path)
     
     model = pipeline['model']
     scaler = pipeline['scaler']
     features = pipeline['features']
     categorical_features = pipeline.get('categorical_features', [])
     
+    # Try multiple paths for test data
+    data_paths = [
+        os.path.join(base_dir, 'data/wrangled_data/merged_test.csv'),
+        '../data/wrangled_data/merged_test.csv',
+    ]
+    
+    data_path = None
+    for path in data_paths:
+        if os.path.exists(path):
+            data_path = path
+            break
+    
+    if not data_path:
+        raise FileNotFoundError(f"Could not find test data. Tried: {data_paths}")
+    
     # Load test data
-    test_df = pd.read_csv('../data/wrangled_data/merged_test.csv')
+    test_df = pd.read_csv(data_path)
     
     # Apply feature engineering
     test_df = create_derived_features(test_df)

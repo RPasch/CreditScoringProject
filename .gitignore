@@ -2,3 +2,12 @@
 /DATASET_ANALYSIS_CALLS.py
 /HELPER_FUNCTIONS_USAGE.md
 /NOTEBOOK_SETUP_CELL.md
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# API keys and credentials
+*.key
+secrets/

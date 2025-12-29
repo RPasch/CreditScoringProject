@@ -74,8 +74,11 @@ def create_xgb_features(df: pd.DataFrame) -> pd.DataFrame:
 def load_model_and_data():
     """Load XGBoost model and test data"""
     try:
-        # Load pipeline from local models directory
-        pipeline_path = 'models/xgboost_pipeline.pkl'
+        # Get the directory where this script is located
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Load pipeline from models directory (relative to this script)
+        pipeline_path = os.path.join(script_dir, 'models/xgboost_pipeline.pkl')
         
         if not os.path.exists(pipeline_path):
             raise FileNotFoundError(f"Model not found at: {pipeline_path}")
@@ -90,15 +93,16 @@ def load_model_and_data():
         top_features = pipeline['top_features']
         
         # Load the XGBoost model JSON
-        model_json_path = 'models/xgboost_model.json'
+        model_json_path = os.path.join(script_dir, 'models/xgboost_model.json')
         
         if not os.path.exists(model_json_path):
             raise FileNotFoundError(f"Model JSON not found at: {model_json_path}")
         
         model.load_model(model_json_path)
         
-        # Load test data from parent directory
-        test_data_path = '../data/wrangled_data/merged_test.csv'
+        # Load test data from repo root
+        repo_root = os.path.dirname(script_dir)
+        test_data_path = os.path.join(repo_root, 'data/wrangled_data/merged_test.csv')
         
         if not os.path.exists(test_data_path):
             raise FileNotFoundError(f"Test data not found at: {test_data_path}")

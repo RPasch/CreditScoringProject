@@ -14,3 +14,14 @@ maxUploadSize = 200
 
 [browser]
 gatherUsageStats = false
+
+[client]
+showErrorDetails = false
+toolbarMode = "minimal"
+
+[logger]
+level = "error"
+messageFormat = "%(message)s"
+
+[deprecation]
+showPyplotGlobalUse = false

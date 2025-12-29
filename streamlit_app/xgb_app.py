@@ -4,6 +4,9 @@ XGBoost Credit Scoring Streamlit App
 Features: Sample selection, predictions, SHAP explanations, AI summaries
 """
 
+import warnings
+warnings.filterwarnings('ignore')
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -16,6 +19,9 @@ import json
 import textwrap
 import shap
 from dotenv import load_dotenv
+
+# Suppress pandas warnings
+pd.options.mode.chained_assignment = None
 
 # Load environment variables (for local development)
 load_dotenv()
@@ -127,13 +133,7 @@ def load_model_and_data():
         return model, top_features, test_df, X_test_selected
         
     except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        st.error(f"Error loading model: {str(e)}")
-        st.error(f"Current directory: {os.getcwd()}")
-        st.error(f"Files in current dir: {os.listdir('.')}")
-        with st.expander("Full error traceback"):
-            st.code(error_details)
+        st.error("⚠️ Unable to load the credit scoring model. Please contact support.")
         return None, None, None, None
 
 
@@ -239,8 +239,8 @@ Write a concise explanation focusing on the main reasons for the {decision.lower
         response.raise_for_status()
         result = response.json()
         return result['choices'][0]['message']['content']
-    except Exception as e:
-        return f"AI explanation unavailable: {str(e)}"
+    except Exception:
+        return "⚠️ AI explanation is temporarily unavailable. Please check your API key or try again later."
 
 
 # Main App
@@ -298,7 +298,7 @@ def main():
             st.markdown(f"**True Label:** {label_text}")
         
         # Predict button
-        predict_button = st.button("🎯 Run Prediction", type="primary", use_container_width=True)
+        predict_button = st.button("🎯 Run Prediction", type="primary", width="stretch")
     
     with col2:
         st.markdown("### 📊 Sample Data Preview")
@@ -309,26 +309,30 @@ def main():
         
         st.dataframe(
             sample_data.head(20),
-            use_container_width=True,
+            width="stretch",
             height=400
         )
         
         with st.expander(f"View all {len(test_df.columns)} columns"):
-            st.dataframe(sample_data, use_container_width=True)
+            st.dataframe(sample_data, width="stretch")
     
     # Prediction section
     if predict_button:
-        st.markdown("---")
-        st.header("🎯 Prediction Results")
-        
-        with st.spinner("Running XGBoost inference..."):
-            # Get explanation
-            explanation_df, pred_prob, shap_values, base_value = explain_xgb_prediction(
-                model, X_test_selected.values, idx, top_features, top_n=top_n_features
-            )
+        try:
+            st.markdown("---")
+            st.header("🎯 Prediction Results")
             
-            decision = "DEFAULT ❌" if pred_prob >= threshold else "APPROVED ✅"
-            decision_class = pred_prob >= threshold
+            with st.spinner("Running XGBoost inference..."):
+                # Get explanation
+                explanation_df, pred_prob, shap_values, base_value = explain_xgb_prediction(
+                    model, X_test_selected.values, idx, top_features, top_n=top_n_features
+                )
+                
+                decision = "DEFAULT ❌" if pred_prob >= threshold else "APPROVED ✅"
+                decision_class = pred_prob >= threshold
+        except Exception:
+            st.error("⚠️ Unable to generate prediction. Please try selecting a different application.")
+            st.stop()
         
         # Metrics
         col1, col2, col3, col4 = st.columns(4)
@@ -392,7 +396,7 @@ def main():
         # SHAP Plot
         st.subheader("📊 SHAP Feature Importance Analysis")
         fig = create_shap_plot(explanation_df, pred_prob, top_n=top_n_features)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
         
         # Model interpretation
         with st.expander("ℹ️ Understanding SHAP Values"):
@@ -426,7 +430,7 @@ def main():
             display_df.columns = ['Feature', 'Value', 'SHAP Value', 'Absolute SHAP']
             st.dataframe(
                 display_df.style.background_gradient(subset=['SHAP Value'], cmap='RdYlGn_r'),
-                use_container_width=True,
+                width="stretch",
                 height=400
             )
         
@@ -436,7 +440,7 @@ def main():
                 'Feature': top_features,
                 'Value': X_test_selected.iloc[idx].values
             })
-            st.dataframe(feature_values, use_container_width=True, height=400)
+            st.dataframe(feature_values, width="stretch", height=400)
 
 
 if __name__ == "__main__":

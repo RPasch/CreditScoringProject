@@ -258,7 +258,7 @@ def main():
     
     # Sidebar
     st.sidebar.header("⚙️ Settings")
-    use_ai = st.sidebar.checkbox("Enable AI Explanations", value=False)
+    use_ai = st.sidebar.checkbox("Enable AI Explanations", value=True)
     
     if use_ai:
         api_key_input = st.sidebar.text_input(
@@ -397,19 +397,6 @@ def main():
         st.subheader("📊 SHAP Feature Importance Analysis")
         fig = create_shap_plot(explanation_df, pred_prob, top_n=top_n_features)
         st.plotly_chart(fig, width="stretch")
-        
-        # Model interpretation
-        with st.expander("ℹ️ Understanding SHAP Values"):
-            st.markdown("""
-            **SHAP (SHapley Additive exPlanations)** shows how each feature contributes to the prediction:
-            
-            - **Positive SHAP values** (green): Increase default probability
-            - **Negative SHAP values** (red): Decrease default probability
-            - **Larger absolute values**: Stronger impact on this specific prediction
-            - **Base value**: Average model prediction across all data
-            
-            The sum of all SHAP values + base value = final prediction
-            """)
         
         # AI Explanation
         if use_ai and api_key_input and api_key_input != "YOUR_OPENAI_API_KEY_HERE":

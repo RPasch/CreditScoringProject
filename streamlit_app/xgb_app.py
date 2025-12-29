@@ -425,14 +425,43 @@ def main():
             st.warning("⚠️ Please enter a valid OpenAI API key in the sidebar to enable AI explanations.")
         
         # Detailed breakdown
-        with st.expander("📋 View All Features and SHAP Values"):
+        with st.expander("View All Features and SHAP Values"):
             display_df = explanation_df[['feature', 'value', 'shap_value', 'abs_shap']].copy()
-            display_df.columns = ['Feature', 'Value', 'SHAP Value', 'Absolute SHAP']
-            st.dataframe(
-                display_df.style.background_gradient(subset=['SHAP Value'], cmap='RdYlGn_r'),
-                width="stretch",
-                height=400
+            
+            # Create color coding for SHAP values
+            colors = ['rgba(255, 100, 100, 0.3)' if x > 0 else 'rgba(100, 255, 100, 0.3)' 
+                      for x in display_df['shap_value']]
+            
+            # Create Plotly table
+            fig_table = go.Figure(data=[go.Table(
+                header=dict(
+                    values=['Feature', 'Value', 'SHAP Value', 'Impact Direction'],
+                    fill_color='lightgray',
+                    align='left',
+                    font=dict(size=12, color='black')
+                ),
+                cells=dict(
+                    values=[
+                        display_df['feature'],
+                        display_df['value'].round(4),
+                        display_df['shap_value'].round(4),
+                        ['Increases Risk' if x > 0 else 'Decreases Risk' for x in display_df['shap_value']]
+                    ],
+                    fill_color=[['white']*len(display_df), 
+                                ['white']*len(display_df),
+                                colors,
+                                ['white']*len(display_df)],
+                    align='left',
+                    font=dict(size=11)
+                )
+            )])
+            
+            fig_table.update_layout(
+                height=min(400, 30 * len(display_df) + 50),
+                margin=dict(l=0, r=0, t=0, b=0)
             )
+            
+            st.plotly_chart(fig_table, width="stretch")
         
         # Feature values for this sample
         with st.expander("🔢 View Feature Values for This Sample"):
